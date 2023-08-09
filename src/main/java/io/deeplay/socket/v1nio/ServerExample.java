@@ -1,0 +1,40 @@
+package io.deeplay.socket.v1nio;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
+
+public class ServerExample {
+    public static void main(String[] args) throws IOException {
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.configureBlocking(false);
+        serverSocketChannel.bind(new InetSocketAddress(6070));
+        while (true) {
+            System.out.println("Accept");
+            SocketChannel socketChannel = serverSocketChannel.accept();
+            if (socketChannel != null) {
+                System.out.println("Accepted");
+                socketChannel.configureBlocking(false);
+                ByteBuffer buffer = ByteBuffer.allocate(1024);
+                while (true) {
+                    buffer.clear();
+                    int read = socketChannel.read(buffer);
+                    if (read < 0) {
+                        break;
+                    }
+                    if (read > 0) {
+                        byte[] bytes = new byte[read];
+                        System.arraycopy(buffer.array(), 0, bytes, 0, read);
+                        socketChannel.write(ByteBuffer.wrap(new String(bytes).toUpperCase().getBytes(StandardCharsets.UTF_8)));
+                    }
+                    buffer.flip();
+                }
+                socketChannel.close();
+            }
+        }
+
+    }
+}
